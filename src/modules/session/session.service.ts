@@ -11,7 +11,7 @@ import { Repository, In, DataSource } from 'typeorm';
 import { Session, SessionStatus } from './entities/session.entity';
 import { CreateSessionDto } from './dto';
 import { EngineFactory } from '../../engine/engine.factory';
-import { IWhatsAppEngine, EngineStatus } from '../../engine/interfaces/whatsapp-engine.interface';
+import { IWhatsAppEngine, EngineStatus, IncomingMessage } from '../../engine/interfaces/whatsapp-engine.interface';
 import { createLogger } from '../../common/services/logger.service';
 import { EventsGateway } from '../events/events.gateway';
 import { WebhookService } from '../webhook/webhook.service';
@@ -283,20 +283,25 @@ export class SessionService implements OnModuleDestroy, OnModuleInit {
         });
       },
       onMessage: (message): void => {
-        this.logger.debug(`Message received from ${message.from}`, {
+        const isFromMe = (message as unknown as Record<string, unknown>).fromMe === true;
+        const eventName = isFromMe ? 'message.sent' : 'message.received';
+        const hookName = isFromMe ? 'message:sent' : 'message:received';
+
+        this.logger.debug(`Message ${isFromMe ? 'sent' : 'received'} from ${message.from}`, {
           sessionId: id,
           messageId: message.id,
           from: message.from,
-          action: 'message_received',
+          fromMe: isFromMe,
+          action: isFromMe ? 'message_sent' : 'message_received',
         });
         // Update last active timestamp
         void this.sessionRepository.update(id, { lastActiveAt: new Date() });
         // Convert IncomingMessage to plain object for dispatch
         const messageData = { ...message };
 
-        // Execute hook for message received - plugins can modify or stop processing
+        // Execute hook for message event - plugins can modify or stop processing
         void this.hookManager
-          .execute('message:received', messageData, {
+          .execute(hookName, messageData, {
             sessionId: id,
             source: 'Engine',
           })
@@ -307,10 +312,33 @@ export class SessionService implements OnModuleDestroy, OnModuleInit {
             }
 
             // Dispatch to webhooks with potentially modified message
-            void this.webhookService.dispatch(id, 'message.received', finalMessage as Record<string, unknown>);
+            void this.webhookService.dispatch(id, eventName, finalMessage as Record<string, unknown>);
             // Emit real-time event to WebSocket clients
             this.eventsGateway.emitMessage(id, finalMessage as Record<string, unknown>);
           });
+      },
+      onMessageAck: (message: IncomingMessage, ack: number): void => {
+        this.logger.debug(`Message ACK: ${message.id} ack=${ack} fromMe=${message.fromMe}`, {
+          sessionId: id,
+          messageId: message.id,
+          ack,
+          fromMe: message.fromMe,
+          action: 'message_ack',
+        });
+
+        // Update last active timestamp
+        void this.sessionRepository.update(id, { lastActiveAt: new Date() });
+
+        const ackPayload: Record<string, unknown> = { ...message, ack };
+
+        // Dispatch message.ack webhook
+        void this.webhookService.dispatch(id, 'message.ack', ackPayload);
+
+        // For outgoing messages, also dispatch message.sent
+        // (covers phone-sent messages that don't fire the 'message' event)
+        if (message.fromMe) {
+          void this.webhookService.dispatch(id, 'message.sent', { ...message });
+        }
       },
       onDisconnected: (reason: string): void => {
         this.logger.warn(`Session disconnected: ${reason}`, {

@@ -191,7 +191,18 @@ export class WhatsAppWebJsAdapter extends EventEmitter implements IWhatsAppEngin
     });
 
     this.client.on('message_ack', (msg, ack) => {
-      this.callbacks.onMessageAck?.(msg.id._serialized, ack);
+      const incomingMessage: IncomingMessage = {
+        id: msg.id._serialized,
+        from: msg.from,
+        to: msg.to,
+        chatId: msg.from,
+        body: msg.body,
+        type: msg.type,
+        timestamp: msg.timestamp,
+        fromMe: msg.fromMe,
+        isGroup: msg.from.endsWith('@g.us'),
+      };
+      this.callbacks.onMessageAck?.(incomingMessage, ack);
     });
 
     this.client.on('disconnected', reason => {

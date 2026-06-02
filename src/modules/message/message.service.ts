@@ -6,6 +6,7 @@ import { SendTextMessageDto, SendMediaMessageDto, MessageResponseDto } from './d
 import { MediaInput } from '../../engine/interfaces/whatsapp-engine.interface';
 import { Message, MessageDirection, MessageStatus } from './entities/message.entity';
 import { HookManager } from '../../core/hooks';
+import { WebhookService } from '../webhook/webhook.service';
 
 export interface GetMessagesOptions {
   chatId?: string;
@@ -20,6 +21,7 @@ export class MessageService {
     private readonly messageRepository: Repository<Message>,
     private readonly sessionService: SessionService,
     private readonly hookManager: HookManager,
+    private readonly webhookService: WebhookService,
   ) {}
 
   async sendText(sessionId: string, dto: SendTextMessageDto): Promise<MessageResponseDto> {
@@ -62,6 +64,18 @@ export class MessageService {
         { sessionId, source: 'MessageService' },
       );
 
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
+
       return {
         messageId: result.id,
         timestamp: result.timestamp,
@@ -102,6 +116,18 @@ export class MessageService {
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
 
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
+
       return {
         messageId: result.id,
         timestamp: result.timestamp,
@@ -133,6 +159,18 @@ export class MessageService {
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
 
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
+
       return {
         messageId: result.id,
         timestamp: result.timestamp,
@@ -162,6 +200,18 @@ export class MessageService {
       message.status = MessageStatus.SENT;
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
+
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
 
       return {
         messageId: result.id,
@@ -193,6 +243,18 @@ export class MessageService {
       message.status = MessageStatus.SENT;
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
+
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
 
       return {
         messageId: result.id,
@@ -258,6 +320,18 @@ export class MessageService {
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
 
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
+
       return {
         messageId: result.id,
         timestamp: result.timestamp,
@@ -294,6 +368,18 @@ export class MessageService {
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
 
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
+
       return {
         messageId: result.id,
         timestamp: result.timestamp,
@@ -323,6 +409,18 @@ export class MessageService {
       message.status = MessageStatus.SENT;
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
+
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
 
       return {
         messageId: result.id,
@@ -357,6 +455,18 @@ export class MessageService {
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
 
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
+
       return {
         messageId: result.id,
         timestamp: result.timestamp,
@@ -389,6 +499,18 @@ export class MessageService {
       message.status = MessageStatus.SENT;
       message.timestamp = result.timestamp;
       await this.messageRepository.save(message);
+
+      // Dispatch sent webhook
+      void this.webhookService.dispatch(sessionId, 'message.sent', {
+        id: result.id,
+        from: message.from,
+        to: message.to,
+        chatId: message.chatId,
+        body: message.body ?? '',
+        type: message.type,
+        timestamp: result.timestamp,
+        fromMe: true,
+      });
 
       return {
         messageId: result.id,
