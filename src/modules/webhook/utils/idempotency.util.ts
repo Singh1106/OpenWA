@@ -32,12 +32,12 @@ export function generateIdempotencyKey(event: string, data: Record<string, unkno
   switch (event) {
     case 'message.received':
     case 'message.sent':
-      // Message ID is unique per message
-      return `msg_${toStr(data.messageId) || toStr(data.id)}`;
+      // Message ID is unique per message — check 'id' first (IncomingMessage), then 'messageId'
+      return `msg_${toStr(data.id) || toStr(data.messageId)}`;
 
     case 'message.ack':
       // Message ID + ack status together are unique
-      return `ack_${toStr(data.messageId)}_${toStr(data.ack, '0')}`;
+      return `ack_${toStr(data.id) || toStr(data.messageId)}_${toStr(data.ack, '0')}`;
 
     case 'message.revoked':
       return `rev_${toStr(data.messageId)}`;
