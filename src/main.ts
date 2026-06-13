@@ -1,9 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ShutdownService } from './common/services/shutdown.service';
+import { createSwaggerConfig } from './config/swagger.config';
+import { BullBoardAuthMiddleware } from './common/security/bull-board-auth.middleware';
+import { AuthService } from './modules/auth/auth.service';
+import { Request, Response, NextFunction } from 'express';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -141,23 +145,19 @@ async function bootstrap() {
   );
 
   // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('OpenWA API')
-    .setDescription('Open Source WhatsApp API Gateway - Free, Self-Hosted HTTP API')
-    .setVersion('0.1.6')
-    .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'X-API-Key')
-    .addTag('sessions', 'WhatsApp session management')
-    .addTag('messages', 'Send and manage messages')
-    .addTag('webhooks', 'Webhook configuration')
-    .addTag('contacts', 'Contact management')
-    .addTag('groups', 'Group management')
-    .addTag('labels', 'Label management (WhatsApp Business)')
-    .addTag('channels', 'Channel/Newsletter management')
-    .addTag('health', 'Health check endpoints')
-    .build();
+  const config = createSwaggerConfig();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+
+  // Protect the Bull Board queue UI (/api/admin/queues). It is mounted by
+  // @bull-board/nestjs as raw Express middleware that the global ApiKeyGuard
+  // does not cover; registering this before app.listen() ensures it runs ahead
+  // of the Bull Board router. Requires a valid ADMIN API key.
+  const bullBoardAuth = new BullBoardAuthMiddleware(app.get(AuthService));
+  app.use('/api/admin/queues', (req: Request, res: Response, next: NextFunction) => {
+    void bullBoardAuth.use(req, res, next);
+  });
 
   const port = process.env.PORT || 2785;
   await app.listen(port);

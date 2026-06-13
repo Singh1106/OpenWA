@@ -314,7 +314,7 @@ export class SessionService implements OnModuleDestroy, OnModuleInit {
             // Dispatch to webhooks with potentially modified message
             void this.webhookService.dispatch(id, eventName, finalMessage as Record<string, unknown>);
             // Emit real-time event to WebSocket clients
-            this.eventsGateway.emitMessage(id, finalMessage as Record<string, unknown>);
+            this.eventsGateway.emitMessage(id, finalMessage);
           });
       },
       onMessageAck: (message: IncomingMessage, ack: number): void => {

@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.6-blue.svg" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-0.1.7-blue.svg" alt="Version"/>
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"/>
   <img src="https://img.shields.io/badge/node-22_LTS-brightgreen.svg" alt="Node"/>
   <img src="https://img.shields.io/badge/NestJS-11.x-red.svg" alt="NestJS"/>
@@ -157,6 +157,10 @@ docker compose --profile full up -d
 >
 > - Development (`docker-compose.dev.yml`): SQLite, local storage, both API & Dashboard included
 > - Production (`docker-compose.yml`): Configurable database, profiles for optional services
+>
+> Official GHCR images are published as multi-arch manifests for:
+> - `linux/amd64`
+> - `linux/arm64`
 
 ## 🔌 Ports
 
