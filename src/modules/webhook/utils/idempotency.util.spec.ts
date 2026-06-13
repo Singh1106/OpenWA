@@ -28,6 +28,11 @@ describe('Idempotency Utils', () => {
       expect(key).toBe('ack_ABC123_3');
     });
 
+    it('should use the `id` field for message.revoked (the real dispatch shape)', () => {
+      const key = generateIdempotencyKey('message.revoked', { id: 'ABC123' });
+      expect(key).toBe('rev_ABC123');
+    });
+
     it('should generate key for session.status', () => {
       const key = generateIdempotencyKey('session.status', {
         sessionId: 'sess_1',

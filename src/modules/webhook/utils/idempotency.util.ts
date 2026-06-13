@@ -42,7 +42,7 @@ export function generateIdempotencyKey(event: string, data: Record<string, unkno
       return `ack_${toStr(data.id ?? data.messageId)}_${toStr(data.ack, '0')}`;
 
     case 'message.revoked':
-      return `rev_${toStr(data.messageId)}`;
+      return `rev_${toStr(data.id ?? data.messageId)}`;
 
     case 'session.status':
       // Session + status combo (same status emitted once per transition)
